@@ -57,6 +57,7 @@ bump_allocator_proc :: proc(
 		}
 		return nil, nil
 	case .Query_Info:
+		return nil, .Mode_Not_Implemented
 	case .Resize, .Resize_Non_Zeroed:
 	}
 

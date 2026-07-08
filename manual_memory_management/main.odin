@@ -1,4 +1,4 @@
-package day02
+package manual_memory_management
 
 import "allocators"
 import "core:fmt"
