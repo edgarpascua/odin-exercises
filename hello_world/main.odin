@@ -1,4 +1,4 @@
-package day01
+package hello_world
 
 import "core:fmt"
 

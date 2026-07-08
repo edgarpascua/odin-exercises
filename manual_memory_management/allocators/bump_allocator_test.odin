@@ -137,5 +137,20 @@ test_bump_allocator_query_features :: proc(t: ^testing.T) {
 		features == expected_features,
 		"allocator features do not match expected features",
 	)
+}
 
+@(test)
+test_bump_allocator_query_info :: proc(t: ^testing.T) {
+	backing_memory := make([]u8, 1024)
+	defer delete(backing_memory)
+
+	bump_data := BumpAllocator {
+		buffer = backing_memory,
+	}
+
+	bump_allocator := make_bump_allocator(&bump_data)
+
+	_, err := bump_allocator.procedure(bump_allocator.data, .Query_Info, 0, 0, nil, 0)
+
+	testing.expect(t, err == .Mode_Not_Implemented, "expected Mode_Not_Implemented")
 }

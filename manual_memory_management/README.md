@@ -115,6 +115,10 @@ Had no idea what this was. Looked up what the core:mem stuff does.
 
 From what I can see it looks like it's just piggy-backing off the shared set of parameters. So the old_memory is performing dual purpose here, and it's being casted to an Allocator_Mode_Set. And we're just assigning a set of currently supported features. Easy enough.
 
+### Handling the .Query_Info branch
+
+From what I'm understanding I could use this to return statistics, asides from the info I'm currently saving (buffer and offset). Really don't have a use for it at the moment, so going to copy what I see some of the core allocators doing and using .Mode_Not_Implemented.
+
 ## Key Takeaways from this exercise
 
 ### Handling of Memory, Freeing, etc
@@ -130,6 +134,6 @@ Very, very similiar to Golang tests. Uses the same conventions to create the tes
 [] Refactor Tests.
   [] Abstract out the Arrange portions of each test, very similar.
 [] Additional Branches:
-  [] .Query_Info
+  [x] .Query_Info
   [] .Resize
   [] .Resize_Non-Zeroed
