@@ -42,3 +42,19 @@ test_bump_allocator_seperates_allocations :: proc(t: ^testing.T) {
 		second,
 	)
 }
+
+@(test)
+test_bump_allocator_out_of_memory :: proc(t: ^testing.T) {
+	backing_memory := make([]u8, 32)
+	defer delete(backing_memory)
+
+	bump_data := BumpAllocator {
+		buffer = backing_memory,
+	}
+
+	bump_allocator := make_bump_allocator(&bump_data)
+
+	_, err := mem.alloc(64, allocator = bump_allocator)
+
+	testing.expect(t, err == .Out_Of_Memory, "out of memory error expected")
+}

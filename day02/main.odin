@@ -7,6 +7,7 @@ import "core:mem"
 main :: proc() {
 	// Requirements called for 1MB of memory.
 	backing_memory := make([]u8, 1024 * 1024)
+	defer delete(backing_memory)
 
 	// Create the Bump Allocator
 	bump_allocator_data := allocators.BumpAllocator {
