@@ -1,3 +1,3 @@
 # Odin Exercises
 
-A collection of exercises while learning the Odin Programming Language.
+Currently learning Odin. I prompted an LLM to provide me with exercises to reinforce my knowledge of key concepts to Odin.
