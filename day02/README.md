@@ -124,3 +124,12 @@ Have previous experience in C++, so many of the concepts are there but with some
 ### Wrote Odin results
 
 Very, very similiar to Golang tests. Uses the same conventions to create the test file (_test), as well as the actual structure is the same. So was easy to adapt to the Odin tests.
+
+## TODO
+
+[] Refactor Tests.
+  [] Abstract out the Arrange portions of each test, very similar.
+[] Additional Branches:
+  [] .Query_Info
+  [] .Resize
+  [] .Resize_Non-Zeroed
