@@ -9,6 +9,13 @@ BumpAllocator :: struct {
 	offset: int,
 }
 
+BUMP_ALLOCATOR_FEATURES :: mem.Allocator_Mode_Set {
+	.Alloc,
+	.Alloc_Non_Zeroed,
+	.Free_All,
+	.Query_Features,
+}
+
 bump_allocator_proc :: proc(
 	allocator_data: rawptr,
 	mode: mem.Allocator_Mode,
@@ -39,10 +46,17 @@ bump_allocator_proc :: proc(
 
 		return memory_region, nil
 	case .Free:
+		return nil, nil
 	case .Free_All:
 		bump.offset = 0
 		return nil, nil
-	case .Query_Features, .Query_Info:
+	case .Query_Features:
+		set := (^mem.Allocator_Mode_Set)(old_memory)
+		if set != nil {
+			set^ = BUMP_ALLOCATOR_FEATURES
+		}
+		return nil, nil
+	case .Query_Info:
 	case .Resize, .Resize_Non_Zeroed:
 	}
 
