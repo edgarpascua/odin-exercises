@@ -107,3 +107,35 @@ test_bump_allocator_allocate_non_zeroed_returns_unzeroed_memory :: proc(t: ^test
 	testing.expect(t, results[0] == 1, "expected element not zeroed")
 	testing.expect(t, results[1] == 2, "expected element not zeroed")
 }
+
+@(test)
+test_bump_allocator_query_features :: proc(t: ^testing.T) {
+	backing_memory := make([]u8, 1024)
+	defer delete(backing_memory)
+
+	bump_data := BumpAllocator {
+		buffer = backing_memory,
+	}
+
+	expected_features := mem.Allocator_Mode_Set {
+		.Alloc,
+		.Alloc_Non_Zeroed,
+		.Free_All,
+		.Query_Features,
+	}
+
+	bump_allocator := make_bump_allocator(&bump_data)
+
+	features: mem.Allocator_Mode_Set
+
+	_, err := bump_allocator.procedure(bump_allocator.data, .Query_Features, 0, 0, &features, 0)
+
+	testing.expect(t, err == nil, "Query_Features failed")
+
+	testing.expect(
+		t,
+		features == expected_features,
+		"allocator features do not match expected features",
+	)
+
+}

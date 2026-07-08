@@ -95,11 +95,25 @@ So we'll create a BumpAllocator based off that. We'll need to cover the differen
 
 ### Handling the .Free Branch
 
-- This really isn't a thing in bump allocators. (Free individual segments that is.)
+- This really isn't a thing in bump allocators. (Free individual segments that is.) Returning nil, nil.
 
 ### Handling the .Free_All branch
 
 One of the benefits of the bump allocator is that the free all is just moving the pointer back to beginning. Effectively saying you don't need the info anymore and we're free to write over the old data.
+
+### Handling the .Query_Features branch
+
+Had no idea what this was. Looked up what the core:mem stuff does.
+
+```odin
+ case .Query_Features:
+  set := (^Allocator_Mode_Set)(old_memory)
+  if set != nil {
+   set^ = {.Alloc, .Alloc_Non_Zeroed, .Free_All, .Resize, .Query_Features}
+  }
+```
+
+From what I can see it looks like it's just piggy-backing off the shared set of parameters. So the old_memory is performing dual purpose here, and it's being casted to an Allocator_Mode_Set. And we're just assigning a set of currently supported features. Easy enough.
 
 ## Key Takeaways from this exercise
 
