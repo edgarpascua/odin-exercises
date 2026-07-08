@@ -58,3 +58,52 @@ test_bump_allocator_out_of_memory :: proc(t: ^testing.T) {
 
 	testing.expect(t, err == .Out_Of_Memory, "out of memory error expected")
 }
+
+@(test)
+test_bump_allocator_allocate_returns_zeroed_memory :: proc(t: ^testing.T) {
+	backing_memory := make([]u8, 1024)
+	defer delete(backing_memory)
+
+	bump_data := BumpAllocator {
+		buffer = backing_memory,
+	}
+
+	bump_allocator := make_bump_allocator(&bump_data)
+
+	data, _ := mem.alloc(64, allocator = bump_allocator)
+
+	testing.expect(t, mem.check_zero_ptr(data, 64), "expected zeroed memory")
+}
+
+@(test)
+test_bump_allocator_allocate_non_zeroed_returns_unzeroed_memory :: proc(t: ^testing.T) {
+	backing_memory := make([]u8, 1024)
+	defer delete(backing_memory)
+
+	bump_data := BumpAllocator {
+		buffer = backing_memory,
+	}
+
+	bump_allocator := make_bump_allocator(&bump_data)
+
+	results, err := bump_allocator.procedure(
+		bump_allocator.data,
+		.Alloc_Non_Zeroed,
+		64,
+		mem.DEFAULT_ALIGNMENT,
+		nil,
+		0,
+	)
+
+	testing.expect(t, len(results) == 64, "expected returned memory to be length 64")
+	testing.expect(t, mem.check_zero(results), "expected zeroed memory")
+
+	results[0] = 1
+	results[1] = 2
+
+	testing.expect(t, !mem.check_zero(results), "expected to not be zeroed memory")
+	second_call_results := mem.free_all(allocator = bump_allocator)
+
+	testing.expect(t, results[0] == 1, "expected element not zeroed")
+	testing.expect(t, results[1] == 2, "expected element not zeroed")
+}
