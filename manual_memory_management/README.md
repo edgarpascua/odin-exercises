@@ -12,9 +12,13 @@
     - [Handling the .Alloc_Non_Zeroed branch](#handling-the-allocnonzeroed-branch)
     - [Handling the .Free Branch](#handling-the-free-branch)
     - [Handling the .Free_All branch](#handling-the-freeall-branch)
+    - [Handling the .Query_Features branch](#handling-the-queryfeatures-branch)
+    - [Handling the .Query_Info branch](#handling-the-queryinfo-branch)
+    - [Handling the .Resize branch](#handling-the-resize-branch)
   - [Key Takeaways from this exercise](#key-takeaways-from-this-exercise)
     - [Handling of Memory, Freeing, etc](#handling-of-memory-freeing-etc)
     - [Wrote Odin results](#wrote-odin-results)
+  - [TODO](#todo)
 <!--toc:end-->
 
 ## Goal: Build two allocators and benchmark them against each other
@@ -119,6 +123,30 @@ From what I can see it looks like it's just piggy-backing off the shared set of 
 
 From what I'm understanding I could use this to return statistics, asides from the info I'm currently saving (buffer and offset). Really don't have a use for it at the moment, so going to copy what I see some of the core allocators doing and using .Mode_Not_Implemented.
 
+### Handling the .Resize branch
+
+Okay so based on the contract I'm seeing:
+
+```odin
+bump_allocator_proc :: proc(
+ allocator_data: rawptr,
+ mode: mem.Allocator_Mode,
+ size, alignment: int,
+ old_memory: rawptr,
+ old_size: int,
+ location := #caller_location,
+) -> (
+ []byte,
+ mem.Allocator_Error,
+) 
+```
+
+We can get the ==old_memory==, and the ==old_size==. Through debugging it looks like the old memory is the START of the location in memory that the user wants resized.
+The ==old_size== is the size of that memory region.
+
+So first things first, the first thing I have to figure out is whether or not what the user is requesting is the last thing stored. Since we have the address, and the size, we should technically be able to just take the location add the size and see if that's the same location where the ==bump_pointer== is at. Only then can we proceed.
+In the event that a request doesn't have enough space to do a resize we'll just return a .Out_Of_Memory err.
+
 ## Key Takeaways from this exercise
 
 ### Handling of Memory, Freeing, etc
@@ -133,7 +161,7 @@ Very, very similiar to Golang tests. Uses the same conventions to create the tes
 
 [] Refactor Tests.
   [] Abstract out the Arrange portions of each test, very similar.
-[] Additional Branches:
+[x] Additional Branches:
   [x] .Query_Info
-  [] .Resize
-  [] .Resize_Non-Zeroed
+  [x] .Resize
+  [x] .Resize_Non_Zeroed
