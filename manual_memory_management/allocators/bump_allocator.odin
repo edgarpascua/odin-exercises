@@ -1,10 +1,9 @@
 package allocators
 
-import "core:log"
 import "core:mem"
 import "core:slice"
 
-BumpAllocator :: struct {
+bump_allocator :: struct {
 	buffer: []u8,
 	offset: int,
 }
@@ -14,6 +13,8 @@ BUMP_ALLOCATOR_FEATURES :: mem.Allocator_Mode_Set {
 	.Alloc_Non_Zeroed,
 	.Free_All,
 	.Query_Features,
+	.Resize,
+	.Resize_Non_Zeroed,
 }
 
 bump_allocator_proc :: proc(
@@ -27,7 +28,7 @@ bump_allocator_proc :: proc(
 	[]byte,
 	mem.Allocator_Error,
 ) {
-	bump := cast(^BumpAllocator)allocator_data
+	bump := cast(^bump_allocator)allocator_data
 
 	switch mode {
 	case .Alloc:
@@ -100,15 +101,12 @@ bump_allocator_proc :: proc(
 	return nil, .Out_Of_Memory
 }
 
-make_bump_allocator :: proc(bump: ^BumpAllocator) -> mem.Allocator {
+make_bump_allocator :: proc(bump: ^bump_allocator) -> mem.Allocator {
 	return mem.Allocator{procedure = bump_allocator_proc, data = bump}
 }
 
 align_forward :: proc(offset, alignment: int) -> int {
-	log.infof("current aligned offset: %v", offset)
-
 	if remainder := offset % alignment; remainder != 0 {
-		log.infof("[LOG] Offset moved due to alignment: %v", offset)
 		return offset + (alignment - remainder)
 	}
 
@@ -116,11 +114,11 @@ align_forward :: proc(offset, alignment: int) -> int {
 }
 
 has_enough_backing_space :: proc(offset, size: int, buffer: []u8) -> bool {
-	return offset + size > len(buffer)
+	return offset + size < len(buffer)
 }
 
 allocate_region :: proc(
-	bump: ^BumpAllocator,
+	bump: ^bump_allocator,
 	size, alignment: int,
 ) -> (
 	[]byte,
@@ -128,8 +126,7 @@ allocate_region :: proc(
 ) {
 	aligned_offset := align_forward(bump.offset, alignment)
 
-	if has_enough_backing_space(aligned_offset, size, bump.buffer) {
-		log.infof("[LOG] Not enough Room to fit new request of size %v", size)
+	if !has_enough_backing_space(aligned_offset, size, bump.buffer) {
 		return nil, .Out_Of_Memory
 	}
 
@@ -137,7 +134,7 @@ allocate_region :: proc(
 	return bump.buffer[aligned_offset:bump.offset], nil
 }
 
-offset_from_pointer :: proc(bump: ^BumpAllocator, ptr: rawptr) -> int {
+offset_from_pointer :: proc(bump: ^bump_allocator, ptr: rawptr) -> int {
 	buffer_start := uintptr(raw_data(bump.buffer))
 	address := uintptr(ptr)
 

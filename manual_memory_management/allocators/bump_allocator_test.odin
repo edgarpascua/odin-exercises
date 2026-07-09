@@ -8,7 +8,7 @@ test_bump_allocator_advances_offset :: proc(t: ^testing.T) {
 	backing_memory := make([]u8, 1024)
 	defer delete(backing_memory)
 
-	bump_data := BumpAllocator {
+	bump_data := bump_allocator {
 		buffer = backing_memory,
 	}
 
@@ -25,7 +25,7 @@ test_bump_allocator_seperates_allocations :: proc(t: ^testing.T) {
 	backing_memory := make([]u8, 1024)
 	defer delete(backing_memory)
 
-	bump_data := BumpAllocator {
+	bump_data := bump_allocator {
 		buffer = backing_memory,
 	}
 
@@ -48,7 +48,7 @@ test_bump_allocator_out_of_memory :: proc(t: ^testing.T) {
 	backing_memory := make([]u8, 32)
 	defer delete(backing_memory)
 
-	bump_data := BumpAllocator {
+	bump_data := bump_allocator {
 		buffer = backing_memory,
 	}
 
@@ -64,7 +64,7 @@ test_bump_allocator_allocate_returns_zeroed_memory :: proc(t: ^testing.T) {
 	backing_memory := make([]u8, 1024)
 	defer delete(backing_memory)
 
-	bump_data := BumpAllocator {
+	bump_data := bump_allocator {
 		buffer = backing_memory,
 	}
 
@@ -80,7 +80,7 @@ test_bump_allocator_allocate_non_zeroed_returns_unzeroed_memory :: proc(t: ^test
 	backing_memory := make([]u8, 1024)
 	defer delete(backing_memory)
 
-	bump_data := BumpAllocator {
+	bump_data := bump_allocator {
 		buffer = backing_memory,
 	}
 
@@ -113,7 +113,7 @@ test_bump_allocator_query_features :: proc(t: ^testing.T) {
 	backing_memory := make([]u8, 1024)
 	defer delete(backing_memory)
 
-	bump_data := BumpAllocator {
+	bump_data := bump_allocator {
 		buffer = backing_memory,
 	}
 
@@ -144,7 +144,7 @@ test_bump_allocator_query_info :: proc(t: ^testing.T) {
 	backing_memory := make([]u8, 1024)
 	defer delete(backing_memory)
 
-	bump_data := BumpAllocator {
+	bump_data := bump_allocator {
 		buffer = backing_memory,
 	}
 
