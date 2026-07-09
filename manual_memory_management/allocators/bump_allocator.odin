@@ -58,7 +58,43 @@ bump_allocator_proc :: proc(
 		return nil, nil
 	case .Query_Info:
 		return nil, .Mode_Not_Implemented
-	case .Resize, .Resize_Non_Zeroed:
+	case .Resize:
+		old_offset := offset_from_pointer(bump, old_memory)
+		end_of_allocation := old_offset + old_size
+
+		if end_of_allocation != bump.offset {
+			return nil, .Invalid_Argument
+		}
+
+		requested_bump_offset := old_offset + size
+
+		if (requested_bump_offset > len(bump.buffer)) {
+			return nil, .Out_Of_Memory
+		}
+
+		bump.offset = old_offset + size
+
+		memory_region := bump.buffer[old_offset:old_offset + size]
+		slice.zero(memory_region)
+		return memory_region, nil
+
+	case .Resize_Non_Zeroed:
+		old_offset := offset_from_pointer(bump, old_memory)
+		end_of_allocation := old_offset + old_size
+
+		if end_of_allocation != bump.offset {
+			return nil, .Invalid_Argument
+		}
+
+		requested_bump_offset := old_offset + size
+
+		if (requested_bump_offset > len(bump.buffer)) {
+			return nil, .Out_Of_Memory
+		}
+
+		bump.offset = old_offset + size
+
+		return bump.buffer[old_offset:old_offset + size], nil
 	}
 
 	return nil, .Out_Of_Memory
@@ -99,4 +135,11 @@ allocate_region :: proc(
 
 	bump.offset = aligned_offset + size
 	return bump.buffer[aligned_offset:bump.offset], nil
+}
+
+offset_from_pointer :: proc(bump: ^BumpAllocator, ptr: rawptr) -> int {
+	buffer_start := uintptr(raw_data(bump.buffer))
+	address := uintptr(ptr)
+
+	return int(address - buffer_start)
 }
