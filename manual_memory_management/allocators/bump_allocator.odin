@@ -60,42 +60,21 @@ bump_allocator_proc :: proc(
 	case .Query_Info:
 		return nil, .Mode_Not_Implemented
 	case .Resize:
-		old_offset := offset_from_pointer(bump, old_memory)
-		end_of_allocation := old_offset + old_size
-
-		if end_of_allocation != bump.offset {
-			return nil, .Invalid_Argument
+		memory_region, err := resize_region(bump, old_memory, old_size, size)
+		if err != nil {
+			return nil, err
 		}
 
-		requested_bump_offset := old_offset + size
-
-		if (requested_bump_offset > len(bump.buffer)) {
-			return nil, .Out_Of_Memory
-		}
-
-		bump.offset = old_offset + size
-
-		memory_region := bump.buffer[old_offset:old_offset + size]
 		slice.zero(memory_region)
 		return memory_region, nil
 
 	case .Resize_Non_Zeroed:
-		old_offset := offset_from_pointer(bump, old_memory)
-		end_of_allocation := old_offset + old_size
-
-		if end_of_allocation != bump.offset {
-			return nil, .Invalid_Argument
+		memory_region, err := resize_region(bump, old_memory, old_size, size)
+		if err != nil {
+			return nil, err
 		}
 
-		requested_bump_offset := old_offset + size
-
-		if (requested_bump_offset > len(bump.buffer)) {
-			return nil, .Out_Of_Memory
-		}
-
-		bump.offset = old_offset + size
-
-		return bump.buffer[old_offset:old_offset + size], nil
+		return memory_region, nil
 	}
 
 	return nil, .Out_Of_Memory
@@ -114,7 +93,7 @@ align_forward :: proc(offset, alignment: int) -> int {
 }
 
 has_enough_backing_space :: proc(offset, size: int, buffer: []u8) -> bool {
-	return offset + size < len(buffer)
+	return offset + size <= len(buffer)
 }
 
 allocate_region :: proc(
@@ -139,4 +118,29 @@ offset_from_pointer :: proc(bump: ^bump_allocator, ptr: rawptr) -> int {
 	address := uintptr(ptr)
 
 	return int(address - buffer_start)
+}
+
+resize_region :: proc(
+	bump: ^bump_allocator,
+	old_memory: rawptr,
+	old_size, size: int,
+) -> (
+	[]u8,
+	mem.Allocator_Error,
+) {
+	old_offset := offset_from_pointer(bump, old_memory)
+	end_of_allocation := old_offset + old_size
+
+	if end_of_allocation != bump.offset {
+		return nil, .Invalid_Argument
+	}
+
+	requested_bump_offset := old_offset + size
+
+	if (requested_bump_offset > len(bump.buffer)) {
+		return nil, .Out_Of_Memory
+	}
+
+	bump.offset = old_offset + size
+	return bump.buffer[old_offset:old_offset + size], nil
 }
