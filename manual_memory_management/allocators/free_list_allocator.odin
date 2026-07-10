@@ -104,3 +104,16 @@ free_list_allocator_proc :: proc(
 
 	return nil, nil
 }
+
+init_free_list_allocator :: proc(buffer: []u8) -> free_list_allocator {
+	allocator := free_list_allocator {
+		buffer = buffer,
+	}
+
+	allocator.head = cast(^free_block)&buffer[0]
+
+	allocator.head.size = uint(len(buffer))
+	allocator.head.next = nil
+
+	return allocator
+}
